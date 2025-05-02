@@ -15,6 +15,7 @@ from routers import sellers as seller_router
 from routers import countries as country_router
 from routers import addresses as address_router
 from routers import admin as admin_router
+from routers import streams
 
 app = FastAPI()
 
@@ -32,5 +33,5 @@ app.include_router(region_router.router)
 app.include_router(seller_router.router)
 app.include_router(country_router.router)
 app.include_router(address_router.router)
-
+app.include_router(streams.router)
 app.include_router(admin_router.router)

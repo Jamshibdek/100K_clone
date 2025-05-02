@@ -3,12 +3,20 @@ from sqlalchemy.orm import Session
 from database import get_db
 from crud import crud
 from schemas import schemas
+from models.models import User
+from auth import get_current_admin
 
 router = APIRouter()
 
 @router.post("/regions/", response_model=schemas.RegionOut)
-def create_region(region: schemas.RegionCreate, db: Session = Depends(get_db)):
+def create_region(
+    region: schemas.RegionCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+    ):
     return crud.create_region(db=db, region=region)
+
+
 
 @router.get("/regions/", response_model=list[schemas.RegionOut])
 def read_regions(db: Session = Depends(get_db)):
@@ -16,7 +24,11 @@ def read_regions(db: Session = Depends(get_db)):
 
 
 @router.post("/districts/", response_model=schemas.DistrictOut)
-def create_district(district: schemas.DistrictCreate, db: Session = Depends(get_db)):
+def create_district(
+    district: schemas.DistrictCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+    ):
     return crud.create_district(db=db, district=district)
 
 @router.get("/districts/", response_model=list[schemas.DistrictOut])

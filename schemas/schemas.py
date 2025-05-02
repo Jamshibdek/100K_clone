@@ -35,7 +35,7 @@ class ProfileBase(BaseModel):
     district_id: int
     image: str
     user_id: int
-
+    
 class ProfileCreate(ProfileBase):
     pass
 
@@ -253,5 +253,18 @@ class UserAddressCreate(UserAddressBase):
 class UserAddressOut(UserAddressBase):
     id: int
     user_id: int
+    class Config:
+        from_attributes = True
+
+
+class StreamCreate(BaseModel):
+    product_id: int
+    title: str
+
+class StreamOut(StreamCreate):
+    id: int
+    seller_id: int
+    created_at: datetime
+
     class Config:
         from_attributes = True

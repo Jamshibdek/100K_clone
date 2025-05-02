@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.models import User, Profile, Category, Product, Transaction, Payment, Order, Region, District, Delivery, Seller, Country, UserAddress
+from models.models import User, Profile, Category, Product, Transaction, Payment, Order, Region, District, Delivery, Seller, Country, UserAddress,Stream
 from schemas.schemas import UserCreate, UserOut, ProfileCreate, CategoryCreate, CategoryOut, ProductCreate, TransactionCreate, PaymentCreate, OrderCreate, RegionCreate, DistrictCreate, DeliveryCreate, SellerCreate, CountryCreate, UserAddressCreate
 from fastapi import HTTPException, Depends
 from crud import crud
@@ -7,6 +7,7 @@ from schemas import schemas
 from routers import transactions
 from passlib.context import CryptContext
 from database import get_db
+from schemas.schemas import StreamCreate, StreamOut
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -146,12 +147,19 @@ def create_order(db: Session, order: OrderCreate, user_id: int):
     region = db.query(Region).filter(Region.id == order.region_id).first()
     if not region:
         raise HTTPException(status_code=404, detail="Viloyat topilmadi")
-    payment = db.query(Region).filter(Region.id == order.payment_id).first()
+    payment = db.query(Payment).filter(Payment.id == order.payment_id).first()
     if not payment:
-        raise HTTPException(status_code=404, detail="Tuman topilmadi")
+        raise HTTPException(status_code=404, detail="To‘lov topilmadi")
     product = db.query(Product).filter(Product.id == order.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product topilmadi")
+
+    # OQIM orqali kelgan bo‘lsa (oqim nomi ID bo'lishi mumkin)
+    stream = db.query(Stream).filter(Stream.title == order.oqim, Stream.product_id == product.id).first()
+    if stream:
+        seller_profile = db.query(Profile).filter(Profile.user_id == stream.seller_id).first()
+        if seller_profile:
+            seller_profile.suma = (seller_profile.suma or 0) + 30000  # 30 ming so‘m qo‘shiladi
 
     db_order = Order(**order.dict(), user_id=user_id)
     db.add(db_order)
@@ -204,8 +212,7 @@ def get_deliveries(db: Session):
 def create_seller(db: Session, seller: SellerCreate):
     product = db.query(Product).filter(Product.id == seller.product_id).first()
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
+        raise HTTPException(status_code=404, detail="Product topilmadi")
     # 2. Region mavjudligini tekshir
     region = db.query(Region).filter(Region.id == seller.region_id).first()
     if not region:
@@ -256,3 +263,11 @@ def create_user_address(db: Session, user_id: int, data: UserAddressCreate):
 
 def get_user_addresses(db: Session, user_id: int):
     return db.query(UserAddress).filter(UserAddress.user_id == user_id).all()
+
+
+def create_stream(db: Session, stream: StreamCreate, seller_id: int):
+    db_stream = Stream(**stream.dict(), seller_id=seller_id)
+    db.add(db_stream)
+    db.commit()
+    db.refresh(db_stream)
+    return db_stream

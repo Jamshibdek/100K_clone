@@ -37,7 +37,7 @@ class Profile(Base):
     district_id = Column(Integer)
     image = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"))
-
+    balance = Column(Integer, default=0)
     user = relationship("User")
 
 class Category(Base):
@@ -185,3 +185,19 @@ class UserAddress(Base):
     user = relationship("User")
     region = relationship("Region")
     district = relationship("District")
+
+
+
+
+
+class Stream(Base):
+    __tablename__ = "streams"
+
+    id = Column(Integer, primary_key=True, index=True)
+    seller_id = Column(Integer, ForeignKey("users.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    title = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    seller = relationship("User")
+    product = relationship("Product")

@@ -4,11 +4,13 @@ from database import SessionLocal
 from crud import crud
 from schemas import schemas
 from database import get_db
+from models.models import User
+from auth import get_current_seller
 router = APIRouter()
 
 
 @router.post("/products/", response_model=schemas.ProductOut)
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_seller)):
     return crud.create_product(db=db, product=product)
 
 @router.get("/products/", response_model=list[schemas.ProductOut])
